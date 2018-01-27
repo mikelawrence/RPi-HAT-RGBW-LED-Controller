@@ -156,7 +156,7 @@ pi@rpi-rgb-led-1:~ $ sudo i2cdetect -y 1
 70: 70 -- -- -- -- -- -- --                         
 ```
 
-### Test the MAX31820 1-Wire Thermometer
+### Test the DS18B20 1-Wire Thermometer
 [Python3-w1thermsensor](https://github.com/timofurrer/w1thermsensor) is a nice 1-Wire python library that also supports command line reading of temperatures from 1-Wire devices. You should have already installed this package in the [Raspberry Pi Setup](#Raspberry-Pi-Setup) section.
 
 Now test the RGBW LED Controller HAT's DS18B20 temperature sensor using `w1thermsensor all`.
