@@ -1,0 +1,10 @@
+*.numbers
+*.bak
+*.kicad_pcb-bak
+*.save*
+old/
+__pycache__/
+
+fp-lib-table
+
+sym-lib-table
