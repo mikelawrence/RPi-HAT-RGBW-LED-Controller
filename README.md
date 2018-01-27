@@ -13,7 +13,7 @@ Note: This HAT does not have the camera flex slot or the display flex cutout so 
   * Order the parts from [Mouser](https://www.mouser.com/ProjectManager/ProjectDetail.aspx?AccessID=8e67d22b4b).
 
 ## Board Preview
-<img src="RPi-HAT-RGBW-LED-Controller-3d-front.png" style="width:100%">
+<img src="meta/RPi-HAT-RGBW-LED-Controller-3d-front.png">
 
 ## Design
 ### Input Power
