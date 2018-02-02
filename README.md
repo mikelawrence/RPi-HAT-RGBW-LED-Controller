@@ -3,9 +3,9 @@ This is a [Raspberry Pi B+ HAT](https://github.com/raspberrypi/hats) that suppor
 
 This PCB is designed using [KiCad](http://kicad-pcb.org). Note this design is using a nightly build of KiCad NOT the current released version (4.07). This HAT is based on [RPi_Hat_Template](https://github.com/xesscorp/RPi_Hat_Template) by XESS Corp.
 
-Note: The LM3414 parts have an exposed pad on the bottom which requires either a reflow oven or hot air to solder properly.
+_Note: The LM3414 parts have an exposed pad on the bottom which requires either a reflow oven or hot air to solder properly._
 
-Note: This HAT does not have the camera flex slot or the display flex cutout so technically cannot be called a HAT.
+_Note: This HAT does not have the camera flex slot or the display flex cutout so technically cannot be called a HAT._
 
 ## Status
 * Rev 1.0 PCB has been ordered from OSH Park but has not been tested.
@@ -36,7 +36,7 @@ Example power budget...Powering a [50W RGB LED light](http://www.ebay.com/sch/si
 A 60W 36VDC power supply will drive the Raspberry Pi, RGBW LED Controller HAT, and the High Power LEDs. [This](http://www.meanwellusa.com/webapp/product/search.aspx?prod=HLG-60H) power supply (part number HLG-60) from Mean Well will drive the 50W RGB light nicely.
 
 ### Power Reality Check
-In my testing I placed a Raspberry Pi, RGBW LED Controller HAT, and a 60W Power Supply in an enclosure to check temperatures. When I ran a rainbow sweep test the power consumption was around 18W the HAT had a temperature rise of about 20C - 25C over room temperature. A static purple color test (both read and blue at full power) with power consumption around 35W the HAT temperature rise was 30C - 35C. Clearly this HAT will need better cooling to run higher power LED configurations.
+In my testing I placed a Raspberry Pi, RGBW LED Controller HAT, and a 60W Power Supply in an enclosure to check temperatures. When I ran a rainbow sweep test the power consumption was around 18W and the HAT had a temperature rise of about 20C - 25C over room temperature. A static purple color test (both read and blue at full power) with power consumption around 35W the HAT temperature rise was 30C - 35C. Clearly this HAT will need better cooling to run higher power LED configurations.
 
 ### LED driver
 The LM3414 from TI is a 1-A, 60-W Common Anode-Capable Constant Current Buck LED Driver. Most constant current LED drivers have a current sense resistor in the high-side path which prevents common anode connections. The LM3414 puts the current sense resistor on the low side. This leaves the high side connected directly to the 36V of the input power. The positive side of all four LED outputs are connected together on the board forcing a common-anode topology. You must not connect the low side to ground.

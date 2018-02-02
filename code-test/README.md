@@ -1,5 +1,5 @@
 # RGBW LED Controller HAT Test Software
-The test software is written in Python 3 and suppors all hardware elements on the RGBW LED Controller HAT.
+The test software is written in Python 3 and supports all hardware elements on the RGBW LED Controller HAT.
 
 The PCA9685 driver is based on Adafruit's Python PCA9685 library (PCA9685.py). While this library works it had some problems. First every register write is a single 8-bit I<sup>2</sup>C transaction even those registers like LEDn_ON which are actually two 8-bit registers together. So I changed all multi-register writes to support the writeList function which writes multiple bytes from a starting address in a single transaction. This required also setting the AI bit in the MODE1 register. This configures the PCA9685 to auto-increment the address counter. Finally I added a function that writes the LED On and LED Off values for multiple PWM channels starting with CH0. This allows the RGB PWM values to be updated simultaneously.
 

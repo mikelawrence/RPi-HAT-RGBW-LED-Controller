@@ -35,7 +35,7 @@ from kbhit import KBHit
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "WARNING"))
 
 # Common values
-SWEEPTIME = 10           # sweep though all colors in seconds
+SWEEPTIME = 60          # sweep though all colors in seconds
 UPDATERATE = 30         # color updates per second
 
 # Returns the current CPU temperature
@@ -52,7 +52,7 @@ def measureTemp():
 print("RPi RGBW LED Controller HAT Test")
 
 try:
-    # Setup MAX318120 temperature sensor on PCB
+    # Setup DS18B20 temperature sensor on PCB
     try:
         for curSensor in W1ThermSensor.get_available_sensors([W1ThermSensor.THERM_SENSOR_DS18B20]):
             boardSensor = curSensor
