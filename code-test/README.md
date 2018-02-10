@@ -1,17 +1,22 @@
 # RGBW LED Controller HAT Test Software
 The test software is written in Python 3 and supports all hardware elements on the RGBW LED Controller HAT.
 
-The PCA9685 driver is based on Adafruit's Python PCA9685 library (PCA9685.py). While this library works it had some problems. First every register write is a single 8-bit I<sup>2</sup>C transaction even those registers like LEDn_ON which are actually two 8-bit registers together. So I changed all multi-register writes to support the writeList function which writes multiple bytes from a starting address in a single transaction. This required also setting the AI bit in the MODE1 register. This configures the PCA9685 to auto-increment the address counter. Finally I added a function that writes the LED On and LED Off values for multiple PWM channels starting with CH0. This allows the RGB PWM values to be updated simultaneously.
+The PCA9685 driver is based on Adafruit's Python PCA9685 library (PCA9685.py). While this library works it had some problems. First every register write is a single 8-bit I<sup>2</sup>C transaction even for those registers like LEDn_ON which are actually two 8-bit registers together. So I changed all multi-register writes to support the writeList function which writes multiple bytes from a starting address in a single transaction. This required also setting the AI bit in the MODE1 register which configures the PCA9685 to auto-increment the address counter. Finally I added a function that writes the LED On and LED Off values for multiple PWM channels starting with CH0. This allows the RGB PWM values to be updated simultaneously.
 
 The rgbled.py file provides most of the color processing and RGB LED control through the PCA9685 PWM controller. Color is defined as a tuple representing a color using Red, Green, and Blue values with a range of [0:255]. The LinearWheel and SineWheel classes provide a convenient HSV to RGB color converter that takes a Hue angle with the range [0:360] and converts it to a color. The Linear Wheel uses a linear translation of colors while the SineWheel uses a Sine wave translation of colors. This [website](http://www.instructables.com/id/How-to-Make-Proper-Rainbow-and-Random-Colors-With-/) has a good explanation of the difference between linear and sinusoid hue translations.
-
-The RgbLed class accepts RGB colors and sets the PCA9685 to produce that color. This class also provides gamma correction if requested.
 
 ## Example
 Running test.py will start rotating through the colors of the rainbow and periodically checking the CPU and HAT temperatures.
 
+First make sure make the python file is executable by executing the following commands.
 ```
-pi@rpi-rgb-led-1:~/projects/RPi-HAT-RGBW-LED-Controller/code $ ./test.py
+cd ~/projects/RPi-HAT-RGBW-LED-Controller/code-test
+chmod 755 test.py
+./test.py
+```
+You should see something similar to the output below and more interesting your LED light should cycling through the colors of the rainbow.
+```
+pi@rpi-rgb-led-1:~/projects/RPi-HAT-RGBW-LED-Controller/code-test $
 RPi RGBW LED Controller HAT Test
 Found 1-Wire temp sensor 00000991f822
 

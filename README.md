@@ -8,9 +8,9 @@ _Note: The LM3414 parts have an exposed pad on the bottom which requires either 
 _Note: This HAT does not have the camera flex slot or the display flex cutout so technically cannot be called a HAT._
 
 ## Status
-* Rev 1.0 PCB has been ordered from OSH Park but has not been tested.
+* Rev 1.0 PCB has been ordered, assembled, and tested.
   * Order the PCB from [OSH Park](https://oshpark.com/shared_projects/8nXTFx94).
-  * Order the parts from [Mouser](https://www.mouser.com/ProjectManager/ProjectDetail.aspx?AccessID=8e67d22b4b).
+  * Order the parts from Mouser using this [Shared BOM](https://www.mouser.com/ProjectManager/ProjectDetail.aspx?AccessID=8e67d22b4b).
 
 ## Board Preview
 <img src="meta/RPi-HAT-RGBW-LED-Controller-3d-front.png">
@@ -165,3 +165,5 @@ pi@rpi-rgb-led-1:~ $ w1thermsensor all
 Got temperatures of 1 sensors:
   Sensor 1 (00000991f822) measured temperature: 25.69 celsius
 ```
+# RGBW LED Controller HAT Test
+See code-test section [README.md](code-test/README.md) for code that fires up the RGBW LED Controller HAT by blending between the primary colors and monitoring temperatures.
