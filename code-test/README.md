@@ -32,8 +32,10 @@ CPU Temp = 47.8C, HAT Temp 35.9C
 The following python libraries were used to demonstrate the functionality of the Raspberry Pi RGBW LED Controller HAT.
 * [Python3 w1thermsensor](https://github.com/timofurrer/w1thermsensor)
 * [Adafruit Python GPIO](https://github.com/adafruit/Adafruit_Python_GPIO)
+
 The following libraries were used but had to be modified.
 * [Adafruit Python PCA9685](https://github.com/adafruit/Adafruit_Python_PCA9685).
+
 The following code was pulled from the Internet
 * [kbhit.py](http://home.wlu.edu/~levys/software/kbhit.py) from Simon D. Levy
 * [timer.py](https://stackoverflow.com/questions/12435211/python-threading-timer-repeat-function-every-n-seconds)
