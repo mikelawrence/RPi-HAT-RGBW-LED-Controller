@@ -1,0 +1,14 @@
+[Unit]
+Description=RGB Floodlight
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 -u rgbfloodlight.py
+WorkingDirectory=/home/pi/projects/RPi-HAT-RGBW-LED-Controller/code-light
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
