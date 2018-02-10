@@ -117,7 +117,7 @@ The Color class is defined in the color.py file. Color is defined as a tuple rep
 The colorwheel.py file is a set of classes that provide a convenient method of converting an angle with the range [0:360] to a color that is either a blend between multiple colors or a bounce effect of fading out one color before switching to another. Multiple colorwheel classes are defined as effects. For instance there is the PrimaryBlendWheel which blends between the primary colors. Or the RainbowBounceWheel which fades between colors of the Rainbow.
 
 ## Raspberry Pi Setup
-This setup makes two key assumptions. First you are using Raspbian. Second, Python 3 is the target programming environment. Install or update Python3 and necessary libraries by performing the following...
+This setup makes two key assumptions. First you are using Raspbian. Second, Python 3 is the target programming environment. Install or update Python 3 and necessary libraries by performing the following...
 ```
 sudo apt-get update
 sudo apt-get -y install python3-dev python3-pip git paho-mqtt python3-w1thermsensor
@@ -129,11 +129,11 @@ cd ~/projects/RPi-HAT-RGBW-LED-Controller/code-light/
 chmod 755 rgbfloddlight.py
 ./rgbfloodlight.py
 ```
-If you see no errors you should be able to see your light in Home Assistant. Configuring Home Assistant is a bit of a stretch for guide but here are a couple of hints.
+If you see no errors you should be able to see your light in Home Assistant. Configuring Home Assistant is a bit of a stretch for this guide but here are a couple of hints.
 
-* Make sure you have a working MQTT configuration. If you use HASS.IO goto the HASS.IO configuration and install the Mosquitto Broker.
+* Make sure you have MQTT installed. If you use HASS.IO goto the HASS.IO configuration and install the Mosquitto Broker.
 * Make sure you have MQTT discovery enabled. See [MQTT Discovery](https://home-assistant.io/docs/mqtt/discovery/).
-* Make sure your MQTT discovery prefix matches the Discovery_Prefix in your RGB Floodlight configuration file. See [MQTT Discovery](https://home-assistant.io/docs/mqtt/discovery/).
+* Make sure your MQTT discovery prefix matches the Discovery_Prefix in your RGB Floodlight configuration file.
 
 I use HASS.IO with the Mosquitto Broker addon installed and my configuration for MQTT is as follows...
 ```yaml
