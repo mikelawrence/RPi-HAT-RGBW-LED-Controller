@@ -28,7 +28,9 @@ import logging
 # logger for this module
 logger = logging.getLogger(__name__)
 
-WheelList = ['Single Color', 'Single Color Bounce', 'Primary Bounce', 'Primary Blend', 'Rainbow Bounce', 'Rainbow Blend', 'Christmas', 'Halloween']
+WheelList = ['Single Color', 'Single Color Bounce', 'Primary Bounce',
+             'Primary Blend', 'Rainbow Bounce', 'Rainbow Blend', 'Christmas',
+             'Halloween']
 
 def getcolorwheellist():
     """Gets a list of color wheel names."""
@@ -97,7 +99,8 @@ class PrimarySineWheel(ColorWheel):
         if value < 120:
             red = round((math.cos(math.radians(value * 1.5)) + 1) * scale)
         elif value >= 240:
-            red = round((1 - math.cos(math.radians((value - 240) * 1.5))) * scale)
+            red = round((1 - math.cos(math.radians((value - 240) * 1.5)))
+                        * scale)
         else:
             red = 0
         # handle green
@@ -109,7 +112,8 @@ class PrimarySineWheel(ColorWheel):
         if value < 120:
             blue = 0
         else:
-            blue = round((1 - math.cos(math.radians((value - 120) * 1.5))) * scale)
+            blue = round((1 - math.cos(math.radians((value - 120) * 1.5)))
+                         * scale)
 
         return Color(red, green, blue)
 
@@ -147,7 +151,8 @@ class ColorBlendWheel(ColorWheel):
         toColor = self._colors[sectionCurrent + 1]
         # get RGB color
         color = fromColor.blend(toColor, sectionBias)
-        #print("∠=%.2f S∠=%.2f S=%d Bias=%.2f C=(%s)" % (value, sectionValue, sectionCurrent, sectionBias, color))
+        #print("∠=%.2f S∠=%.2f S=%d Bias=%.2f C=(%s)" % (value, sectionValue,
+        #      sectionCurrent, sectionBias, color))
         return(color)
 
 
@@ -201,13 +206,15 @@ class ColorBounceWheel(ColorWheel):
         sectionCurrent = int(sectionValue / sectionDegrees)
         color = self._colors[sectionCurrent]
         # get intensity based on angle
-        intensity = math.fabs(math.cos(math.radians(value * (len(self._colors) - 1) / 2)))
+        intensity = math.fabs(
+            math.cos(math.radians(value * (len(self._colors) - 1) / 2)))
         # correct color selected now adjust color intensity
         red = color.r * intensity
         green = color.g * intensity
         blue = color.b * intensity
         color = Color(red, green, blue)
-        #print("∠=%.2f S∠=%.2f S=%d I=%.2f C=(%s)" % (value, sectionValue, sectionCurrent, intensity, color))
+        #print("∠=%.2f S∠=%.2f S=%d I=%.2f C=(%s)" % (value, sectionValue,
+        #      sectionCurrent, intensity, color))
         return(color)
 
 
