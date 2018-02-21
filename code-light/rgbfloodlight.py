@@ -47,9 +47,9 @@ logging.basicConfig(level=os.environ.get("LOGLEVEL", "WARNING"))
 FIRMWARE = "0.1.0"
 CONFFILE = "rgbfloodlight.conf"
 STATEFILE = "rgbfloodlightstate.json"
-LEDUPDATERATE = 30          # how often LED is updated in times per second
-SAVEFILEFREQ = 60           # how long to delay writing to state file
-SWEEPTIME = 60              # sweep though all colors in seconds
+LEDUPDATERATE = 30                # how often LED is updated (times per second)
+SAVEFILEFREQ = 60                 # how long to delay writing to state file
+ENABLE_AVAILABILITY_TOPIC = False # enable availability topic
 
 # globals
 mqttc = None
@@ -282,8 +282,8 @@ def mqtt_on_connect(mqttc, userdata, flags, rc):
             mqttc.publish(str("/".join([TopicGroup, 'config'])),
                           payload="", qos=1, retain=True)
         # indicate we are online now
-        mqttc.publish(ConfigLight['availability_topic'],
-                      payload=ConfigLight['payload_available'],
+        mqttc.publish(availability_topic,
+                      payload=payload_available,
                       qos=1, retain=True)
         # subscribe to json light command topic
         mqttc.subscribe(ConfigLight['command_topic'])
@@ -371,10 +371,16 @@ try:
         'effect_list': colorwheel.getcolorwheellist(),
         'retain': True,
         'qos': 1,
-        'availability_topic':  str("/".join([TopicLight, 'status'])),
-        'payload_available': 'online',
-        'payload_not_available': 'offline',
     }
+    # generate availability strings
+    availability_topic = str("/".join([TopicLight, 'status']))
+    payload_available = 'online'
+    payload_not_available = 'offline'
+    # add availability topic to light config if enabled
+    if ENABLE_AVAILABILITY_TOPIC == True:
+        ConfigLight['availability_topic'] = availability_topic
+        ConfigLight['payload_available'] = payload_available
+        ConfigLight['payload_not_available'] = payload_not_available
 
     # create RGB Floodlight Group Device Home Assistant Discovery Config
     TopicGroup = str(
@@ -423,8 +429,8 @@ try:
     mqttc.on_message = mqtt_on_message
     mqttc.on_connect = mqtt_on_connect
     mqttc.on_disconnect = mqtt_on_disconnect
-    mqttc.will_set(ConfigLight['availability_topic'],
-                   payload=ConfigLight['payload_not_available'],
+    mqttc.will_set(availability_topic,
+                   payload=payload_not_available,
                    retain=False)
     mqttc.connect(Config.get('MQTT', 'Broker'),
                   port=Config.getint('MQTT', 'Port'),
@@ -508,7 +514,8 @@ try:
         # prevent angle from exceeding 360 (not really necessary)
         if angle > 360:
             angle -= 360
-        #print("RGB Floodlight: Angle = %.2f, Color=(%s)." % (angle, led.color))
+        #print("RGB Floodlight: Angle = %.2f, Color=(%s)." %
+        #    (angle, led.color))
         # did we receive a signal to exit?
         if killer.kill_now:
             break
@@ -516,8 +523,8 @@ finally:
     # shutdown MQTT gracefully
     if mqttc is not None:
         # set will for offline status
-        mqttc.publish(ConfigLight['availability_topic'],
-                      payload=ConfigLight['payload_not_available'],
+        mqttc.publish(availability_topic,
+                      payload=payload_not_available,
                       qos=1, retain=True)
         mqttc.loop_stop()
         mqttc.disconnect()  # disconnect from MQTT broker
