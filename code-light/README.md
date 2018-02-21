@@ -27,6 +27,9 @@ light:
       - Rainbow Blend
       - Christmas
       - Halloween
+# Include the next three settings if you want availability in Home Assistant
+# Availability seems marginal in Home Assistant and frequently disables
+# light controls even when the light is operational.
     availability_topic: "hass/light/Studio-Roof-Floodlight/rgblight/status"
     payload_available: "online"
     payload_not_available: "offline"
@@ -135,7 +138,7 @@ If you see no errors you should be able to see your light in Home Assistant. Con
 * Make sure you have MQTT discovery enabled. See [MQTT Discovery](https://home-assistant.io/docs/mqtt/discovery/).
 * Make sure your MQTT discovery prefix matches the Discovery_Prefix in your RGB Floodlight configuration file.
 
-I use HASS.IO with the Mosquitto Broker addon installed and my configuration for MQTT is as follows...
+I use HASS.IO with the Mosquitto Broker add-on installed and my configuration for MQTT is as follows...
 ```yaml
 mqtt:
   broker: core-mosquitto
