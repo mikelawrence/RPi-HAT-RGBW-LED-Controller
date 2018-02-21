@@ -101,7 +101,8 @@ class SineWheel(ColorWheel):
         if angle < 120:
             red = round((math.cos(math.radians(angle * 1.5)) + 1) * scale)
         elif angle >= 240:
-            red = round((1 - math.cos(math.radians((angle - 240) * 1.5))) * scale)
+            red = round((1 - math.cos(math.radians((angle - 240) * 1.5)))
+                        * scale)
         else:
             red = 0
         # handle green
@@ -113,7 +114,8 @@ class SineWheel(ColorWheel):
         if angle < 120:
             blue = 0
         else:
-            blue = round((1 - math.cos(math.radians((angle - 120) * 1.5))) * scale)
+            blue = round((1 - math.cos(math.radians((angle - 120) * 1.5)))
+                         * scale)
 
         return Color(red, green, blue)
 

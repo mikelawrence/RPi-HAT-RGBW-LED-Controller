@@ -47,14 +47,16 @@ def get_cpu_temperature():
 
 # Display the CPU and board tempertures on the console.
 def measureTemp():
-    print("CPU Temp = %sC, HAT Temp %.1fC" % (get_cpu_temperature(), boardSensor.get_temperature()))
+    print("CPU Temp = %sC, HAT Temp %.1fC" % (get_cpu_temperature(),
+          boardSensor.get_temperature()))
 
 print("RPi RGBW LED Controller HAT Test")
 
 try:
     # Setup DS18B20 temperature sensor on PCB
     try:
-        for curSensor in W1ThermSensor.get_available_sensors([W1ThermSensor.THERM_SENSOR_DS18B20]):
+        for curSensor in W1ThermSensor.get_available_sensors(
+                [W1ThermSensor.THERM_SENSOR_DS18B20]):
             boardSensor = curSensor
 
         print("Found 1-Wire temp sensor %s" % (boardSensor.id))
