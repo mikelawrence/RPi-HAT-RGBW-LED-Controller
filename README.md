@@ -11,6 +11,8 @@ _Note: This HAT does not have the camera flex slot or the display flex cutout so
 * Rev 1.0 PCB has been ordered, assembled, and tested.
   * Order the PCB from [OSH Park](https://oshpark.com/shared_projects/8nXTFx94).
   * Order the parts from Mouser using this [Shared BOM](https://www.mouser.com/ProjectManager/ProjectDetail.aspx?AccessID=8e67d22b4b).
+  * The Green LED failed on one of my lights. The board is working as it should. This is most likely a LED module problem or incorrect output current. Replaced the module, changed the current from 550mA to 500mA and added a scale factor on the green output which currently limits the duty cycle to a maximum of 75%. Green output is higher in intensity anyways.
+
 
 ## Board Preview
 <img src="meta/RPi-HAT-RGBW-LED-Controller-3d-front.png">

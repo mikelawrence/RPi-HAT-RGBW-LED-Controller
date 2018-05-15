@@ -376,7 +376,7 @@ try:
     availability_topic = str("/".join([TopicLight, 'status']))
     payload_available = 'online'
     payload_not_available = 'offline'
-    # add availability topic to light config if enabled
+    # add availability topic if configured
     if ENABLE_AVAILABILITY_TOPIC == True:
         ConfigLight['availability_topic'] = availability_topic
         ConfigLight['payload_available'] = payload_available
@@ -438,7 +438,8 @@ try:
     mqttc.loop_start()
 
     # RGB LED controller
-    led = RgbLed(freq=200, address=0x40, gamma=1.8)
+    led = RgbLed(freq=200, address=0x40, gamma=1.8,
+                 scaleR=1.0, scaleG=0.75, scaleB=1.0)
 
     # Setup DS18B20 temperature sensor on PCB
     try:

@@ -30,7 +30,8 @@ logger = logging.getLogger(__name__)
 
 """RGB led controller through PCA9685 PWM IC."""
 class RgbLed:
-    def __init__(self, freq=200, address=0x40, gamma=1.0):
+    def __init__(self, freq=200, address=0x40, gamma=1.0,
+                 scaleR=1.0, scaleG=1.0, scaleB=1.0):
         """
         Initialize the driver.
 
@@ -46,6 +47,9 @@ class RgbLed:
         self._color = Color(0,0,0)
         self._is_on = False
         self._brightness = 1.0
+        self._scaleR = scaleR
+        self._scaleG = scaleG
+        self._scaleB = scaleB
 
     def on(self):
         """Turn the led on."""
@@ -127,5 +131,10 @@ class RgbLed:
         else:
             # size output for 12-bit pmw with NO gamma correction
             pwmValues = [(x * 4096 / 255) for x in color]
+        # scale pwm values based on scale factors
+        pwmValues[0] = round(pwmValues[0] * self._scaleR)
+        pwmValues[1] = round(pwmValues[1] * self._scaleG)
+        pwmValues[2] = round(pwmValues[2] * self._scaleB)
         # finally set the pwm values
         self._device.set_multiple_pwm(pwmValues)
+        #print("R=%d, G=%d, B=%d"% (pwmValues[0], pwmValues[1], pwmValues[2]))
