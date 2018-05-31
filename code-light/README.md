@@ -64,7 +64,7 @@ sensor:
 binary_sensor:
   - platform: mqtt
     name: Studio Roof RGB Floodlight Over Temperature Alarm
-    state_topic: "hass/sensor/Studio-Roof-Floodlight/hat_temperature/state"
+    state_topic: "hass/binary_sensor/Studio-Roof-Floodlight/hat_temperature/state"
     device_class: "heat"
     payload_on: "ON"
     payload_off: "OFF"

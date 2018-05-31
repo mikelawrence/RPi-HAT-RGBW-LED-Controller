@@ -103,7 +103,7 @@ def measureTemp():
     except NameError:
         tempMeasCount = 0
         tempHatMax = 0.0
-        tempAlarm = True    # cause immediate alarm publish
+        tempAlarm = True        # cause immediate alarm publish
 
     # get the HAT temperature
     tempHat = hatSensor.get_temperature()
@@ -117,8 +117,8 @@ def measureTemp():
         if MqttConnected:
             # We are connected to MQTT broker
             publishTemp()
-            tempBoard = -55.0
-            tempMeasCount = 0
+            tempHatMax = -55.0  # max temp is low so we will catch next high
+            tempMeasCount = 0   # start next interval
     # handle over temp alarms
     if tempAlarm:
         # we currently have an over temp situation (add a bit of hysteresis)
