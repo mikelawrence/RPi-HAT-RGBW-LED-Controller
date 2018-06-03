@@ -92,8 +92,21 @@ def publishTemp():
     mqttc.publish(ConfigHatTemp['state_topic'],
                   payload='{:0.1f}'.format(tempHatMax), qos=1, retain=True)
 
-# Measure the Hat temperture
-def measureTemp():
+# publish WiFi RSSI
+def publishRSSI():
+    # get RSSI from iwconfig
+    process = Popen(['iwconfig', 'wlan0'], stdout=PIPE)
+    output, _error = process.communicate()
+    rssi = -1000
+    for line in output.decode("utf-8").split("\n"):
+        if "Signal level" in line:
+            rssi = int(line.split("Signal level=")[1].split(" ")[0])
+    if (rssi > -1000):
+        # RSSI was measured
+        mqttc.publish(ConfigRSSI['state_topic'], str(rssi), qos=1, retain=True)
+
+# Measure the Hat temperature and WiFi RSSI
+def measureSensors():
     # use globals to keep track of variables between function calls
     global tempMeasCount, tempHatMax, tempAlarm
 
@@ -113,12 +126,14 @@ def measureTemp():
         tempHatMax = tempHat
     # is it time to publish?
     if tempMeasCount >= Config.getint('RGB Floodlight', 'Temp_Publish_Rate'):
-        # time to publish temperatures
+        # time to publish sensors
         if MqttConnected:
             # We are connected to MQTT broker
-            publishTemp()
+            publishTemp()       # publish the temperature
+            publishRSSI()       # publish the RSSI
             tempHatMax = -55.0  # max temp is low so we will catch next high
             tempMeasCount = 0   # start next interval
+
     # handle over temp alarms
     if tempAlarm:
         # we currently have an over temp situation (add a bit of hysteresis)
@@ -240,7 +255,6 @@ def mqtt_on_message(mqttc, obj, msg):
         print("RGB Floodlight: Received unknown command topic '%s', with "
               "payload '%s'." % (msg.topic, msg.payload.decode("utf-8")))
 
-
 # handle MQTT connection events
 def mqtt_on_connect(mqttc, userdata, flags, rc):
     global MqttConnected
@@ -255,6 +269,9 @@ def mqtt_on_connect(mqttc, userdata, flags, rc):
             mqttc.publish(str("/".join([TopicLight, 'config'])),
                           payload=json.dumps(ConfigLight), qos=1,
                           retain=True)
+            mqttc.publish(str("/".join([TopicRSSI, 'config'])),
+                          payload=json.dumps(ConfigRSSI), qos=1,
+                          retain=True)
             mqttc.publish(str("/".join([TopicHatTemp, 'config'])),
                           payload=json.dumps(ConfigHatTemp), qos=1,
                           retain=True)
@@ -264,6 +281,8 @@ def mqtt_on_connect(mqttc, userdata, flags, rc):
         else:
             # discovery is disabled so publish blank config
             mqttc.publish(str("/".join([TopicLight, 'config'])),
+                          payload="", qos=1, retain=True)
+            mqttc.publish(str("/".join([TopicRSSI, 'config'])),
                           payload="", qos=1, retain=True)
             mqttc.publish(str("/".join([TopicHatTemp, 'config'])),
                           payload="", qos=1, retain=True)
@@ -400,6 +419,16 @@ try:
         'qos': 1,
     }
 
+    # create RSSI Device Home Assistant Discovery Config
+    TopicRSSI = str(
+        "/".join([Config.get('Home Assistant', 'Discovery_Prefix'), 'sensor',
+        Config.get('Home Assistant', 'Node_ID'), 'rssi']))
+    ConfigRSSI = {
+        'name': Config.get('Home Assistant', 'Node_Name') + " RSSI",
+        'state_topic': str("/".join([TopicRSSI, 'state'])),
+        'unit_of_measurement': 'dBm',
+    }
+
     # create HAT Temperature Device Home Assistant Discovery Config
     TopicHatTemp = str(
         "/".join([Config.get('Home Assistant', 'Discovery_Prefix'), 'sensor',
@@ -432,9 +461,25 @@ try:
     mqttc.will_set(availability_topic,
                    payload=payload_not_available,
                    retain=False)
-    mqttc.connect(Config.get('MQTT', 'Broker'),
-                  port=Config.getint('MQTT', 'Port'),
-                  keepalive=Config.getint('MQTT', 'KeepAlive'))
+
+    # connect to broker
+    status = False
+    while (status == False):
+        try:
+            if (mqttc.connect(Config.get('MQTT', 'Broker'),
+                    port=Config.getint('MQTT', 'Port'),
+                    keepalive=Config.getint('MQTT', 'KeepAlive')) == 0):
+                status = True       # indicate success
+        except:
+            # connection failed due to a socket error or other bad thing
+            status = False          # indicate failure
+        # wait a bit before retrying
+        if (status == False):
+            print("RGB Floodlight: Failed to connect to broker: mqtt://%s:%d"
+                  % (Config.get('MQTT', 'Broker'),
+                  Config.getint('MQTT', 'Port')))
+            sleep(10)               # sleep for 10 seconds before retrying
+
     mqttc.loop_start()
 
     # RGB LED controller
@@ -451,13 +496,14 @@ try:
         print("RGB Floodlight: HAT 1-Wire temperature sensor not found!")
 
     # publish temps now
-    measureTemp()
+    measureSensors()
     publishTemp()
+    publishRSSI()
 
     # start the background measure temperature timer
     tempTimer = InfiniteTimer(
         Config.getint('RGB Floodlight', 'Temp_Measurement_Time'),
-        measureTemp, name="TempTimer")
+        measureSensors, name="TempTimer")
     tempTimer.start()
 
     # grab SIGTERM to shutdown gracefully

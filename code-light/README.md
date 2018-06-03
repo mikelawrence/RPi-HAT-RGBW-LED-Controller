@@ -9,9 +9,9 @@ If you don't want to use discovery here is the configuration of the light in Hom
 light:
   # Main RGB Floodlight config
   - platform: mqtt_json
-    name: Studio Roof RGB Floodlight
-    state_topic: "hass/light/Studio-Roof-Floodlight/rgblight/state"
-    command_topic: "hass/light/Studio-Roof-Floodlight/rgblight/set"
+    name: Studio Roof Light
+    state_topic: "hass/light/studio_roof_light/rgblight/state"
+    command_topic: "hass/light/studio_roof_light/rgblight/set"
     brightness: true
     rgb: true
     effect: true
@@ -30,15 +30,15 @@ light:
 # Include the next three settings if you want availability in Home Assistant
 # Availability seems marginal in Home Assistant and frequently disables
 # light controls even when the light is operational.
-    availability_topic: "hass/light/Studio-Roof-Floodlight/rgblight/status"
+    availability_topic: "hass/light/studio_roof_light/rgblight/status"
     payload_available: "online"
     payload_not_available: "offline"
 
   # Group RGB Floodlight config
   - platform: mqtt_json
-    name: Roof RGB Floodlights
-    state_topic: "hass/light/Roof-Floodlights/rgblight/state"
-    command_topic: "hass/light/Roof-Floodlights/rgblight/set"
+    name: Roof Lights
+    state_topic: "hass/light/roof_light/rgblight/state"
+    command_topic: "hass/light/roof_light/rgblight/set"
     brightness: true
     rgb: true
     effect: true
@@ -57,14 +57,19 @@ light:
 
 sensor:
   - platform: mqtt
-    name: Studio Roof RGB Floodlight Temperature
-    state_topic: "hass/sensor/Studio-Roof-Floodlight/temperature/state"
+    name: Studio Roof Light RSSI
+    state_topic: "hass/sensor/studio_roof_light/rssi/state"
+    unit_of_measurement: "dBm"
+  - platform: mqtt
+    name: Studio Roof Light Temperature
+    state_topic: "hass/sensor/studio_roof_light/temperature/state"
     unit_of_measurement: "°C"
+
 
 binary_sensor:
   - platform: mqtt
-    name: Studio Roof RGB Floodlight Over Temperature Alarm
-    state_topic: "hass/binary_sensor/Studio-Roof-Floodlight/hat_temperature/state"
+    name: Studio Roof Light Over Temperature Alarm
+    state_topic: "hass/binary_sensor/studio_roof_light/hat_temperature/state"
     device_class: "heat"
     payload_on: "ON"
     payload_off: "OFF"
@@ -88,25 +93,26 @@ Note the "transition" parameter specifies how long a given effect last before re
 ```yaml
 # Input slider for transition time
 input_number:
-  studio_floodlight_transition_time:
-    name: "Studio Roof Floodlight Transition Speed"
+  studio_roof_light_transition_time:
+    name: "Studio Roof Light Transition Speed"
     initial: 120
     min: 1
     max: 180
     step: 1
+
 # automation to pipe the transition value over to light
 automation:
-  - id: studio_roof_transition_speed
-    alias: "Studio Roof Floodlight Transition Speed"
+  - id: studio_roof_light_transition_speed
+    alias: "Studio Roof Light Transition Speed"
     initial_state: True
     hide_entity: False
     trigger:
       - platform: state
-        entity_id: input_number.studio_floodlight_transition_time
+        entity_id: input_number.studio_roof_light_transition_time
     action:
       - service: mqtt.publish
         data_template:
-          topic: "hass/light/Studio-Roof-Floodlight/rgblight/set"
+          topic: "hass/light/studio_roof_light/rgblight/set"
           payload: '{"transition": {{ trigger.to_state.state | int }}}'
 
 ```
