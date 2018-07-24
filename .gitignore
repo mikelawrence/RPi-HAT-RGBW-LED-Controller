@@ -1,5 +1,7 @@
 *.numbers
 *.bak
+*.xml
+*.net
 *.kicad_pcb-bak
 *.save*
 old/

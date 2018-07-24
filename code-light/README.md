@@ -7,7 +7,7 @@ If you don't want to use discovery here is the configuration of the light in Hom
 ```yaml
 # Example configuration.yaml entry
 light:
-  # Main RGB Floodlight config
+  # Main RGB Light config
   - platform: mqtt_json
     name: Studio Roof Light
     state_topic: "hass/light/studio_roof_light/rgblight/state"
@@ -34,11 +34,11 @@ light:
     payload_available: "online"
     payload_not_available: "offline"
 
-  # Group RGB Floodlight config
+  # Group RGB Lights config
   - platform: mqtt_json
     name: Roof Lights
-    state_topic: "hass/light/roof_light/rgblight/state"
-    command_topic: "hass/light/roof_light/rgblight/set"
+    state_topic: "hass/light/roof_lights/rgblight/state"
+    command_topic: "hass/light/roof_lights/rgblight/set"
     brightness: true
     rgb: true
     effect: true
@@ -74,7 +74,7 @@ binary_sensor:
     payload_on: "ON"
     payload_off: "OFF"
 ```
-The RGB Floodlight subscribes to the command_topic and expects JSON control data in the following format...
+The RGB Light subscribes to the command_topic and expects JSON control data in the following format...
 
 ```JSON
 {

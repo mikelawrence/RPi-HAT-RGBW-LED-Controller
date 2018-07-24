@@ -1,7 +1,7 @@
 # Raspberry Pi RGBW LED Controller HAT
 This is a [Raspberry Pi B+ HAT](https://github.com/raspberrypi/hats) that supports four high power LEDs. Each LED output uses a resistor configurable constant current driver with PWM support to control light intensity. A fourth LED channel was added to support color LEDs that have an extra Green or White LED. This HAT also supports Common-Anode LED configurations. The component selection as shown in the BOM is for a 50W RGB LED light that uses a constant current of 550mA at 24V-16.8V. The Design section discusses this in detail.
 
-This PCB is designed using [KiCad](http://kicad-pcb.org). Note this design is using a nightly build of KiCad NOT the current released version (4.07). This HAT is based on [RPi_Hat_Template](https://github.com/xesscorp/RPi_Hat_Template) by XESS Corp.
+This PCB is designed using [KiCad 5.0.0](http://kicad-pcb.org). This HAT is based on [RPi_Hat_Template](https://github.com/xesscorp/RPi_Hat_Template) by XESS Corp.
 
 _Note: The LM3414 parts have an exposed pad on the bottom which requires either a reflow oven or hot air to solder properly._
 
