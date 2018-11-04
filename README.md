@@ -84,7 +84,7 @@ Determine minimum C<sub>IN</sub> (C7, C9, C11, C13) for 200mV or less voltage ri
 ![C_{IN}=\frac{0.467\cdot(1-0.467)\cdot 543\times10^{-3}}{498\times10^{3}\cdot200\times10^{-3}}=1.36\mu F\textup{ choose }2.2\mu F\textup{ standard value}](https://latex.codecogs.com/svg.latex?C_%7BIN-MIN%7D%3D%5Cfrac%7B0.467%5Ccdot%281-0.467%29%5Ccdot%20543%5Ctimes10%5E%7B-3%7D%7D%7B498%5Ctimes10%5E%7B3%7D%5Ccdot200%5Ctimes10%5E%7B-3%7D%7D%3D1.36%5Cmu%20F%5Ctextup%7B%20choose%20%7D2.2%5Cmu%20F%5Ctextup%7B%20standard%20value%7D)
 
 ### PWM Controller
-A Raspberry Pi has only one hardware capable PWM pin (GPIO18). With up to four PWM outputs needed for this HAT I decided to use a PCA9685 from NXP alleviate the load on the Raspberry Pi. The PCA9685 from NXP is a 16-Channel, 12-bit, I<sup>2</sup>C PWM controller. It supports independent LED on and off times so the LED outputs can be adjusted in phase along with pulse width. However, when phase is changed from 0 the next PWM cycle will reset the output. For frequent updates this causes the the output light to flicker.
+A Raspberry Pi has only one hardware capable PWM pin (GPIO18). With up to four PWM outputs needed for this HAT I decided to use a PCA9685 from NXP alleviate the load on the Raspberry Pi. The PCA9685 from NXP is a 16-Channel, 12-bit, I<sup>2</sup>C PWM controller. It supports independent LED on and off times so the LED outputs can be adjusted in phase along with pulse width. However, when phase is changed from 0 the next PWM cycle will reset the output. For frequent updates this causes the output light to flicker.
 
 There are few settings that are important to using the PCA9685 on this HAT. First the EXTCLK bit in the MODE1 register must be set to 0. In the MODE2 register the INVRT bit must be set to 0 and the OUTDRV bit must be set to 1. Luckily this is the default state for all of these bits.
 
@@ -92,8 +92,8 @@ There are few settings that are important to using the PCA9685 on this HAT. Firs
 This setup makes two key assumptions. First you are using Raspbian. Second, Python3 is the target programming environment. Install or update Python3 and necessary libraries by performing the following...
 ```
 sudo apt-get update
-sudo apt-get -y install build-essential python3-dev python3-pip git i2c-tools python3-smbus python3-w1thermsensor
-pip3 install Adafruit-GPIO
+sudo apt-get -y install build-essential python3-dev python3-pip git i2c-tools python3-w1thermsensor
+pip3 install Adafruit-GPIO paho-mqtt
 ```
 
 ### Configure ID EEPROM

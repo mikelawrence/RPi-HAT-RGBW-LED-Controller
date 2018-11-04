@@ -81,8 +81,9 @@ Color.Primary = [Color(255,   0,   0), # Red
                  Color(255,   0,   0)] # and back to Red
 
 Color.Halloween = [Color(255,   0,   0), # Red
-                   Color(255, 100,   0), # Orange
+#                   Color(255, 100,   0), # Orange
 #                   Color( 85,   0, 171), # Purple
+                   Color(127,   0, 255), # Purple
                    Color(255,   0,   0)] # Red
 
 Color.Christmas = [Color(255,   0,   0), # Red
