@@ -135,11 +135,12 @@ pip3 install Adafruit-GPIO paho-mqtt
 It is also assumed that you already cloned this repository. Be sure to edit the 'rgbfloodlight.conf' file to support your configuration. Test the software by executing the following commands.
 ```
 cd ~/projects/RPi-HAT-RGBW-LED-Controller/code-light/
-chmod 755 rgbfloddlight.py
+chmod 755 rgbfloodlight.py
 ./rgbfloodlight.py
 ```
 If you see no errors you should be able to see your light in Home Assistant. Configuring Home Assistant is a bit of a stretch for this guide but here are a couple of hints.
 
+* "RGB Floodlight: Failed to load state file 'rgbfloodlightstate.json'." means there is no previous state for the light. This is perfectly normal when the code is run for the first time.
 * Make sure you have MQTT installed. If you use HASS.IO goto the HASS.IO configuration and install the Mosquitto Broker.
 * Make sure you have MQTT discovery enabled. See [MQTT Discovery](https://home-assistant.io/docs/mqtt/discovery/).
 * Make sure your MQTT discovery prefix matches the Discovery_Prefix in your RGB Floodlight configuration file.
