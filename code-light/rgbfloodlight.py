@@ -292,14 +292,10 @@ def mqtt_on_connect(mqttc, userdata, flags, rc):
         if (Config.getboolean('Home Assistant', 'Discovery_Enabled')
             and Config.getboolean('Home Assistant', 'Group_Enabled')
             and Config.getboolean('Home Assistant', 'Group_Master')):
-           # discovery and groups are enabled so publish group config data
+            # discovery and groups are enabled so publish group config data
             mqttc.publish(str("/".join([TopicGroup, 'config'])),
                           payload=json.dumps(ConfigGroup), qos=1,
                           retain=True)
-        else:
-            # discovery and groups are disabled so publish blank config
-            mqttc.publish(str("/".join([TopicGroup, 'config'])),
-                          payload="", qos=1, retain=True)
         # indicate we are online now
         mqttc.publish(availability_topic,
                       payload=payload_available,
