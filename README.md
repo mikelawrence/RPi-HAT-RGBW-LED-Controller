@@ -96,13 +96,18 @@ sudo apt-get -y install build-essential python3-dev python3-pip git i2c-tools py
 pip3 install Adafruit-GPIO paho-mqtt
 ```
 
-### Configure ID EEPROM
-Raspberry Pi HATs require an ID EEPROM with data that uniquely identifies every hat ever made. Start by cloning this repository on your Raspberry Pi, building the EEPROM tools, and make the the `eeprom_settings.eep` file.
+### Clone this Repository
+Now is a good time to clone this repository on your Raspberry Pi. Clearly the KiCad files are not needed to configure and run this code on your Raspberry Pi so you pick and choose the files needed but these instructions will clone the entire repository.
 ```
 mkdir ~/projects
 cd ~/projects
 git clone https://github.com/mikelawrence/RPi-HAT-RGBW-LED-Controller
-cd RPi-HAT-RGBW-LED-Controller/eeprom/
+```
+
+### Configure ID EEPROM
+Raspberry Pi HATs require an ID EEPROM with data that uniquely identifies every hat ever made. Start by cloning this repository on your Raspberry Pi, building the EEPROM tools, and make the the `eeprom_settings.eep` file.
+```
+cd ~/projects/RPi-HAT-RGBW-LED-Controller/eeprom/
 make all
 ./eepmake eeprom_settings.txt eeprom_settings.eep
 ```

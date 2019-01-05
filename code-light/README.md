@@ -132,7 +132,7 @@ sudo apt-get update
 sudo apt-get -y install build-essential python3-dev python3-pip git i2c-tools python3-w1thermsensor
 pip3 install Adafruit-GPIO paho-mqtt
 ```
-It is also assumed that you already cloned this repository. Be sure to edit the 'rgbfloodlight.conf' file to support your configuration. Test the software by executing the following commands.
+It is also assumed that you already cloned this repository as shown in the Clone This Repository section of the main project [README file](../README.md). Be sure to edit the 'rgbfloodlight.conf' file to support your configuration. Test the software by executing the following commands.
 ```
 cd ~/projects/RPi-HAT-RGBW-LED-Controller/code-light/
 chmod 755 rgbfloodlight.py
