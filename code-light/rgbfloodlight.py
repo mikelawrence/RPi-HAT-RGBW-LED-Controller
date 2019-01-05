@@ -376,7 +376,7 @@ try:
         Config.get('Home Assistant', 'Node_ID'), 'rgblight']))
     ConfigLight = {
         'name': Config.get('Home Assistant', 'Node_Name'),
-        'platform': 'mqtt_json',
+        'schema': 'json',
         'brightness': True,
         'rgb': True,
         'effect': True,
@@ -403,7 +403,7 @@ try:
         Config.get('Home Assistant', 'Group_ID'), 'rgblight']))
     ConfigGroup = {
         'name': Config.get('Home Assistant', 'Group_Name'),
-        'platform': 'mqtt_json',
+        'schema': 'json',
         'brightness': True,
         'rgb': True,
         'effect': True,
