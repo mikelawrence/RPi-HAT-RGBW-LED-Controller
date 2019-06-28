@@ -44,15 +44,17 @@ import colorwheel
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "WARNING"))
 
 # User configurable values
-FIRMWARE = "0.1.0"
+ENABLE_AVAILABILITY_TOPIC = False   # enable availability topic
+FIRMWARE = "0.2.0"
 CONFFILE = "rgbfloodlight.conf"
 STATEFILE = "rgbfloodlightstate.json"
-LEDUPDATERATE = 30                # how often LED is updated (times per second)
-SAVEFILEFREQ = 60                 # how long to delay writing to state file
-ENABLE_AVAILABILITY_TOPIC = False # enable availability topic
+LEDUPDATERATE = 30                  # how often LED is updated (times per second)
+SAVEFILEFREQ = 60                   # how long to delay writing to state file
+QOS = 1                             # MQTT Quality of Service
 
 # globals
-mqttc = None
+Mqttc = None
+SaveStateTimer = None
 led = None
 
 # class to handle SIGTERM signal
@@ -89,8 +91,8 @@ def queueSaveStateFile(state):
 
 # publish Hat temperature
 def publishTemp():
-    mqttc.publish(ConfigHatTemp['state_topic'],
-                  payload='{:0.1f}'.format(tempHatMax), qos=1, retain=True)
+    Mqttc.publish(ConfigHatTemp['stat_t'],
+                  payload='{:0.1f}'.format(tempHatMax), qos=QOS, retain=True)
 
 # publish WiFi RSSI
 def publishRSSI():
@@ -103,7 +105,7 @@ def publishRSSI():
             rssi = int(line.split("Signal level=")[1].split(" ")[0])
     if (rssi > -1000):
         # RSSI was measured
-        mqttc.publish(ConfigRSSI['state_topic'], str(rssi), qos=1, retain=True)
+        Mqttc.publish(ConfigRSSI['stat_t'], str(rssi), qos=QOS, retain=True)
 
 # Measure the Hat temperature and WiFi RSSI
 def measureSensors():
@@ -140,18 +142,18 @@ def measureSensors():
         if tempHat < (Config.getfloat('RGB Floodlight', 'Temp_Alarm') - 5.0):
             if MqttConnected:
                 # we are connected so publish over temp alarm is now over
-                mqttc.publish(ConfigOverTemp['state_topic'],
-                              payload=ConfigOverTemp['payload_off'],
-                              qos=1, retain=True)
+                Mqttc.publish(ConfigOverTemp['stat_t'],
+                              payload=ConfigOverTemp['pl_off'],
+                              qos=QOS, retain=True)
                 tempAlarm = False
     else:
         # we currently are in a normal temperature range
         if tempHat >= Config.getfloat('RGB Floodlight', 'Temp_Alarm'):
             if MqttConnected:
                 # we are connected so publish over temp alarm
-                mqttc.publish(ConfigOverTemp['state_topic'],
-                              payload=ConfigOverTemp['payload_on'],
-                              qos=1, retain=True)
+                Mqttc.publish(ConfigOverTemp['stat_t'],
+                              payload=ConfigOverTemp['pl_on'],
+                              qos=QOS, retain=True)
                 tempAlarm = True
 
 # publish the given state
@@ -173,24 +175,24 @@ def publishState(state, group=False):
     # convert to JSON
     payload = json.dumps(jsonState)
     # publish the state
-    mqttc.publish(ConfigLight['state_topic'], payload=payload, qos=1,
+    Mqttc.publish(ConfigLight['stat_t'], payload=payload, qos=QOS,
                   retain=True)
     if (Config.getboolean('Home Assistant', 'Group_Enabled')
         and Config.getboolean('Home Assistant', 'Group_Master')
         and group):
         # group is enabled so publish the state there too
-        mqttc.publish(ConfigGroup['state_topic'], payload=payload, qos=1,
+        Mqttc.publish(ConfigGroup['stat_t'], payload=payload, qos=QOS,
                       retain=True)
 
 # handle MQTT message events
 def mqtt_on_message(mqttc, obj, msg):
     global NextState, Changed
     if (Config.getboolean('Home Assistant', 'Group_Enabled') and
-        msg.topic == ConfigGroup['command_topic'] or
-        msg.topic == ConfigLight['command_topic']):
+        msg.topic == ConfigGroup['cmd_t'] or
+        msg.topic == ConfigLight['cmd_t']):
         # received a light command
         payload = msg.payload.decode("utf-8")
-        #if msg.topic == ConfigLight['command_topic']:
+        #if msg.topic == ConfigLight['cmd_t']:
         #    print("RGB Floodlight: Received command '%s'." % payload)
         #else:
         #    print("RGB Floodlight: Received group command '%s'." % payload)
@@ -245,7 +247,7 @@ def mqtt_on_message(mqttc, obj, msg):
                 #      % newTransition)
 
         # publish the current state new or not
-        publishState(NextState, msg.topic == ConfigGroup['command_topic'])
+        publishState(NextState, msg.topic == ConfigGroup['cmd_t'])
         # indicate when parameters have been changed to rest of program
         if cmdStateChanged:
             Changed = True
@@ -261,55 +263,64 @@ def mqtt_on_connect(mqttc, userdata, flags, rc):
     if rc == 0:
         # connection was successful
         MqttConnected = True
-        print("RGB Floodlight: Connected to broker: mqtt://%s:%d"
+        print("RGB Floodlight: Connected to MQTT broker: mqtt://%s:%d"
               % (mqttc._host, mqttc._port))
         # publish node configs is discovery is on
         if Config.getboolean('Home Assistant', 'Discovery_Enabled'):
             # discovery is enabled so publish config data
             mqttc.publish(str("/".join([TopicLight, 'config'])),
-                          payload=json.dumps(ConfigLight), qos=1,
+                          payload=json.dumps(ConfigLight), qos=QOS,
                           retain=True)
             mqttc.publish(str("/".join([TopicRSSI, 'config'])),
-                          payload=json.dumps(ConfigRSSI), qos=1,
+                          payload=json.dumps(ConfigRSSI), qos=QOS,
                           retain=True)
             mqttc.publish(str("/".join([TopicHatTemp, 'config'])),
-                          payload=json.dumps(ConfigHatTemp), qos=1,
+                          payload=json.dumps(ConfigHatTemp), qos=QOS,
                           retain=True)
             mqttc.publish(str("/".join([TopicOverTemp, 'config'])),
-                          payload=json.dumps(ConfigOverTemp), qos=1,
+                          payload=json.dumps(ConfigOverTemp), qos=QOS,
                           retain=True)
         else:
             # discovery is disabled so publish blank config
             mqttc.publish(str("/".join([TopicLight, 'config'])),
-                          payload="", qos=1, retain=True)
+                          payload="", qos=QOS, retain=True)
             mqttc.publish(str("/".join([TopicRSSI, 'config'])),
-                          payload="", qos=1, retain=True)
+                          payload="", qos=QOS, retain=True)
             mqttc.publish(str("/".join([TopicHatTemp, 'config'])),
-                          payload="", qos=1, retain=True)
+                          payload="", qos=QOS, retain=True)
             mqttc.publish(str("/".join([TopicOverTemp, 'config'])),
-                          payload="", qos=1, retain=True)
+                          payload="", qos=QOS, retain=True)
         # publish group configs
         if (Config.getboolean('Home Assistant', 'Discovery_Enabled')
             and Config.getboolean('Home Assistant', 'Group_Enabled')
             and Config.getboolean('Home Assistant', 'Group_Master')):
             # discovery and groups are enabled so publish group config data
             mqttc.publish(str("/".join([TopicGroup, 'config'])),
-                          payload=json.dumps(ConfigGroup), qos=1,
+                          payload=json.dumps(ConfigGroup), qos=QOS,
                           retain=True)
-        # indicate we are online now
-        mqttc.publish(availability_topic,
-                      payload=payload_available,
-                      qos=1, retain=True)
+        # update availability
+        if ENABLE_AVAILABILITY_TOPIC == True:
+            mqttc.publish(TopicAvailability, 
+                payload=PayloadAvailable, qos=QOS, retain=True)
+        else:
+            # when availability is not enabled clear the topic
+            mqttc.publish(TopicAvailability, 
+                payload="", qos=QOS, retain=True)
         # subscribe to json light command topic
-        mqttc.subscribe(ConfigLight['command_topic'])
+        mqttc.subscribe(ConfigLight['cmd_t'])
         # subscribe to group json light command topic
         if Config.getboolean('Home Assistant', 'Group_Enabled'):
             # group is enabled so listen for commands on group command topic
-            mqttc.subscribe(ConfigGroup['command_topic'])
+            mqttc.subscribe(ConfigGroup['cmd_t'])
     else:
         # connection failed
-        print("RGB Floodlight: MQTT_ERR=%d: Failed to connect to broker: "
-              "mqtt://%s:%d " % (rc, mqttc._host, mqttc._port))
+        if rc == 5:
+            # MQTT Authentication failed
+            print("RGB Floodlight: MQTT authentication failed: " +
+                "mqtt://{}:{}".format(mqttc._host, mqttc._port))
+        else:
+            print("RGB Floodlight: MQTT_ERR={}: Failed to connect to broker: ".format(rc) +
+                "mqtt://{}:{}".format(mqttc._host, mqttc._port))
 
 # handle MQTT disconnect events
 def mqtt_on_disconnect(client, userdata, rc):
@@ -325,26 +336,22 @@ try:
         sys.exit("RGB Floodlight: '%s' config file is missing." % CONFFILE)
     Config = configparser.ConfigParser(
         defaults = {
-            'MQTT': {
-                'Broker': '127.0.0.1',
-                'Port': '1883',
-                'KeepAlive': '60'
-            },
-            'Home Assistant': {
-                'Discovery_Enabled': 'false',
-                'Discovery_Prefix': 'homeassistant',
-                'Node_ID': 'default_node_id',
-                'Node_Name': 'Default Node Name',
-                'Group_Enabled': 'false',
-                'Group_Master': 'false',
-                'Group_ID': 'default_group_id',
-                'Group_Name': 'Default Group Name'
-            },
-            'RGB Floodlight': {
-                'Temp_Measurement_Time': '10',
-                'Temp_Publish_Rate': '300',
-                'Temp_Alarm': '85.0'
-            }
+            'Broker': '127.0.0.1',
+            'Port': '1883',
+            'KeepAlive': '60',
+            'UserName': '',
+            'Password': '',
+            'Discovery_Enabled': 'false',
+            'Discovery_Prefix': 'homeassistant',
+            'Node_ID': 'default_node_id',
+            'Node_Name': 'Default Node Name',
+            'Group_Enabled': 'false',
+            'Group_Master': 'false',
+            'Group_ID': 'default_group_id',
+            'Group_Name': 'Default Group Name',
+            'Temp_Measurement_Time': '10',
+            'Temp_Publish_Rate': '300',
+            'Temp_Alarm': '85.0',
         })
     Config.read(CONFFILE)
 
@@ -370,99 +377,121 @@ try:
     NextState = CurState
     Changed = True
 
+    # create RGB Floodlight Device Home Assistant Availability Config
+    TopicAvailability = "/".join([Config.get('Home Assistant', 'Discovery_Prefix'),
+        'light', Config.get('Home Assistant', 'Node_ID'), 'rgblight', 'status'])
+    PayloadAvailable = 'online'
+    PayloadNotAvailable = 'offline'
+
     # create RGB Floodlight Device Home Assistant Discovery Config
-    TopicLight = str(
-        "/".join([Config.get('Home Assistant', 'Discovery_Prefix'), 'light',
-        Config.get('Home Assistant', 'Node_ID'), 'rgblight']))
+    TopicLight = "/".join([Config.get('Home Assistant', 'Discovery_Prefix'), 
+        'light', Config.get('Home Assistant', 'Node_ID'), 'rgblight'])
     ConfigLight = {
         'name': Config.get('Home Assistant', 'Node_Name'),
         'schema': 'json',
         'brightness': True,
         'rgb': True,
         'effect': True,
-        'state_topic': str("/".join([TopicLight, 'state'])),
-        'command_topic': str("/".join([TopicLight, 'set'])),
-        'brightness_scale': 255,
-        'effect_list': colorwheel.getcolorwheellist(),
-        'retain': True,
-        'qos': 1,
+        'stat_t': "/".join([TopicLight, 'state']),
+        'cmd_t': "/".join([TopicLight, 'set']),
+        'bri_scl': 255,
+        'fx_list': colorwheel.getcolorwheellist(),
+        'ret': True,
+        'qos': QOS,
     }
-    # generate availability strings
-    availability_topic = str("/".join([TopicLight, 'status']))
-    payload_available = 'online'
-    payload_not_available = 'offline'
     # add availability topic if configured
     if ENABLE_AVAILABILITY_TOPIC == True:
-        ConfigLight['availability_topic'] = availability_topic
-        ConfigLight['payload_available'] = payload_available
-        ConfigLight['payload_not_available'] = payload_not_available
+        ConfigLight['avty_t'] = TopicAvailability
+        # ConfigLight['pl_avail'] = PayloadAvailable
+        # ConfigLight['pl_not_avail'] = PayloadNotAvailable
 
     # create RGB Floodlight Group Device Home Assistant Discovery Config
-    TopicGroup = str(
-        "/".join([Config.get('Home Assistant', 'Discovery_Prefix'), 'light',
-        Config.get('Home Assistant', 'Group_ID'), 'rgblight']))
+    TopicGroup = "/".join([Config.get('Home Assistant', 'Discovery_Prefix'),
+        'light', Config.get('Home Assistant', 'Group_ID'), 'rgblight'])
     ConfigGroup = {
         'name': Config.get('Home Assistant', 'Group_Name'),
         'schema': 'json',
         'brightness': True,
         'rgb': True,
         'effect': True,
-        'state_topic': str("/".join([TopicGroup, 'state'])),
-        'command_topic': str("/".join([TopicGroup, 'set'])),
-        'brightness_scale': 255,
-        'effect_list': colorwheel.getcolorwheellist(),
-        'retain': True,
-        'qos': 1,
+        'stat_t': "/".join([TopicGroup, 'state']),
+        'cmd_t': "/".join([TopicGroup, 'set']),
+        'bri_scl': 255,
+        'fx_list': colorwheel.getcolorwheellist(),
+        'ret': True,
+        'qos': QOS,
     }
+    # add availability topic if configured
+    if ENABLE_AVAILABILITY_TOPIC == True:
+        ConfigGroup['avty_t'] = TopicAvailability
+        # ConfigGroup['pl_avail'] = PayloadAvailable
+        # ConfigGroup['pl_not_avail'] = PayloadNotAvailable
 
     # create RSSI Device Home Assistant Discovery Config
-    TopicRSSI = str(
-        "/".join([Config.get('Home Assistant', 'Discovery_Prefix'), 'sensor',
-        Config.get('Home Assistant', 'Node_ID'), 'rssi']))
+    TopicRSSI = "/".join([Config.get('Home Assistant', 'Discovery_Prefix'),
+        'sensor', Config.get('Home Assistant', 'Node_ID'), 'rssi'])
     ConfigRSSI = {
         'name': Config.get('Home Assistant', 'Node_Name') + " RSSI",
-        'state_topic': str("/".join([TopicRSSI, 'state'])),
-        'unit_of_measurement': 'dBm',
+        'stat_t': "/".join([TopicRSSI, 'state']),
+        'unit_of_meas': 'dBm',
     }
+    # add availability topic if configured
+    if ENABLE_AVAILABILITY_TOPIC == True:
+        ConfigRSSI['avty_t'] = TopicAvailability
+        # ConfigRSSI['pl_avail'] = PayloadAvailable
+        # ConfigRSSI['pl_not_avail'] = PayloadNotAvailable
 
     # create HAT Temperature Device Home Assistant Discovery Config
-    TopicHatTemp = str(
-        "/".join([Config.get('Home Assistant', 'Discovery_Prefix'), 'sensor',
-        Config.get('Home Assistant', 'Node_ID'), 'temperature']))
+    TopicHatTemp = "/".join([Config.get('Home Assistant', 'Discovery_Prefix'),
+        'sensor', Config.get('Home Assistant', 'Node_ID'), 'temperature'])
     ConfigHatTemp = {
         'name': Config.get('Home Assistant', 'Node_Name') + " Temperature",
-        'state_topic': str("/".join([TopicHatTemp, 'state'])),
-        'unit_of_measurement': '°C',
+        'stat_t': "/".join([TopicHatTemp, 'state']),
+        'unit_of_meas': '°C',
     }
+    # add availability topic if configured
+    if ENABLE_AVAILABILITY_TOPIC == True:
+        ConfigHatTemp['avty_t'] = TopicAvailability
+        # ConfigHatTemp['pl_avail'] = PayloadAvailable
+        # ConfigHatTemp['pl_not_avail'] = PayloadNotAvailable
 
     # create Over Temp Alarm Device Home Assistant Discovery Config
-    TopicOverTemp = str(
-        "/".join([Config.get('Home Assistant', 'Discovery_Prefix'),
+    TopicOverTemp = "/".join([Config.get('Home Assistant', 'Discovery_Prefix'),
         'binary_sensor', Config.get('Home Assistant', 'Node_ID'),
-        'over_temperature']))
+        'over_temperature'])
     ConfigOverTemp = {
         'name': Config.get('Home Assistant', 'Node_Name')
                 + " Over Temperature Alarm",
-        'state_topic': str("/".join([TopicOverTemp, 'state'])),
-        'device_class': 'heat',
-        'payload_on': 'ON',
-        'payload_off': 'OFF',
+        'stat_t': "/".join([TopicOverTemp, 'state']),
+        'dev_cla': 'heat',
+        'pl_on': 'ON',
+        'pl_off': 'OFF',
     }
+    # add availability topic if configured
+    if ENABLE_AVAILABILITY_TOPIC == True:
+        ConfigOverTemp['avty_t'] = TopicAvailability
+        # ConfigOverTemp['pl_avail'] = PayloadAvailable
+        # ConfigOverTemp['pl_not_avail'] = PayloadNotAvailable
 
     # setup MQTT
-    mqttc = mqtt.Client()
-    mqttc.on_message = mqtt_on_message
-    mqttc.on_connect = mqtt_on_connect
-    mqttc.on_disconnect = mqtt_on_disconnect
-    mqttc.will_set(availability_topic,
-                   payload=payload_not_available,
-                   retain=False)
+    Mqttc = mqtt.Client()
+    # add username and password if defined
+    if Config['MQTT']['UserName'] != "":
+        print("RGB Floodlight: MQTT authentication will be used")
+        Mqttc.username_pw_set(username=Config['MQTT']['UserName'],
+            password=Config['MQTT']['Password'])
+    Mqttc.on_message = mqtt_on_message
+    Mqttc.on_connect = mqtt_on_connect
+    Mqttc.on_disconnect = mqtt_on_disconnect
+    if ENABLE_AVAILABILITY_TOPIC == True:
+        Mqttc.will_set(TopicAvailability, payload=PayloadNotAvailable,
+            retain=False)
 
     # connect to broker
     status = False
     while (status == False):
         try:
-            if (mqttc.connect(Config.get('MQTT', 'Broker'),
+            if (Mqttc.connect(Config.get('MQTT', 'Broker'),
                     port=Config.getint('MQTT', 'Port'),
                     keepalive=Config.getint('MQTT', 'KeepAlive')) == 0):
                 status = True       # indicate success
@@ -476,7 +505,7 @@ try:
                   Config.getint('MQTT', 'Port')))
             sleep(10)               # sleep for 10 seconds before retrying
 
-    mqttc.loop_start()
+    Mqttc.loop_start()
 
     # RGB LED controller
     led = RgbLed(freq=200, address=0x40, gamma=1.8,
@@ -564,15 +593,15 @@ try:
             break
 finally:
     # shutdown MQTT gracefully
-    if mqttc is not None:
+    if Mqttc is not None:
         # set will for offline status
-        mqttc.publish(availability_topic,
-                      payload=payload_not_available,
-                      qos=1, retain=True)
-        mqttc.loop_stop()
-        mqttc.disconnect()  # disconnect from MQTT broker
+        if ENABLE_AVAILABILITY_TOPIC == True:
+            Mqttc.publish(TopicAvailability, payload=PayloadNotAvailable,
+                qos=QOS, retain=True)
+        Mqttc.disconnect()  # disconnect from MQTT broker
+        Mqttc.loop_stop()   # will wait until disconnected
         print("RGB Floodlight: Disconnecting from broker: mqtt://%s:%d"
-              % (mqttc._host, mqttc._port))
+              % (Mqttc._host, Mqttc._port))
     # try to cancel existing save state file timer
     try:
         SaveStateTimer.cancel()
