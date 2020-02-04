@@ -45,7 +45,7 @@ logging.basicConfig(level=os.environ.get("LOGLEVEL", "WARNING"))
 
 # User configurable values
 ENABLE_AVAILABILITY_TOPIC = False   # enable availability topic
-FIRMWARE = "0.2.0"
+FIRMWARE = "0.2.1"
 CONFFILE = "rgbfloodlight.conf"
 STATEFILE = "rgbfloodlightstate.json"
 LEDUPDATERATE = 30                  # how often LED is updated (times per second)
@@ -56,6 +56,38 @@ QOS = 1                             # MQTT Quality of Service
 Mqttc = None
 SaveStateTimer = None
 led = None
+
+# get the Raspberry Pi CPU Serial Number
+def getCpuSerial():
+  # Extract serial from cpuinfo file
+  cpuserial = "0000000000000000"
+  try:
+    f = open('/proc/cpuinfo','r')
+    for line in f:
+      if line[0:6]=='Serial':
+        cpuserial = line[10:26]
+    f.close()
+  except:
+    cpuserial = "00000000000Error"
+  return cpuserial.strip()
+
+def getEthMac():
+  try:
+    f = open('/sys/class/net/eth0/address','r')
+    mac = f.readline()
+    f.close()
+  except:
+    return None
+  return mac.strip()
+
+def getWLANMac():
+  try:
+    f = open('/sys/class/net/wlan0/address','r')
+    mac = f.readline()
+    f.close()
+  except:
+    return None
+  return mac.strip()
 
 # class to handle SIGTERM signal
 class GracefulKiller:
@@ -377,6 +409,25 @@ try:
     NextState = CurState
     Changed = True
 
+    # get unique identifiers
+    UniqueId = getCpuSerial()
+    Eth0Mac = getEthMac()
+    Wlan0Mac = getWLANMac()
+
+    # each config entry get this device
+    HA_device = {
+        'identifiers': 'RPi' + UniqueId,
+        'connections': [],
+        'name': Config.get('Home Assistant', 'Node_Name'),
+        'model': 'RGB Roof Light',
+        'manufacturer': 'Mike Lawrence',
+        'sw_version': FIRMWARE
+    }
+    if Eth0Mac:
+        HA_device['connections'].append(['ETH0_MAC', Eth0Mac])
+    if Wlan0Mac:
+        HA_device['connections'].append(['WLAN0_MAC', Wlan0Mac])
+
     # create RGB Floodlight Device Home Assistant Availability Config
     TopicAvailability = "/".join([Config.get('Home Assistant', 'Discovery_Prefix'),
         'light', Config.get('Home Assistant', 'Node_ID'), 'rgblight', 'status'])
@@ -398,6 +449,8 @@ try:
         'fx_list': colorwheel.getcolorwheellist(),
         'ret': True,
         'qos': QOS,
+        'uniq_id': UniqueId+'00',
+        'dev': HA_device,
     }
     # add availability topic if configured
     if ENABLE_AVAILABILITY_TOPIC == True:
@@ -420,6 +473,8 @@ try:
         'fx_list': colorwheel.getcolorwheellist(),
         'ret': True,
         'qos': QOS,
+        'uniq_id': UniqueId+'01',
+        'dev': HA_device,
     }
     # add availability topic if configured
     if ENABLE_AVAILABILITY_TOPIC == True:
@@ -434,6 +489,8 @@ try:
         'name': Config.get('Home Assistant', 'Node_Name') + " RSSI",
         'stat_t': "/".join([TopicRSSI, 'state']),
         'unit_of_meas': 'dBm',
+        'uniq_id': UniqueId+'02',
+        'dev': HA_device,
     }
     # add availability topic if configured
     if ENABLE_AVAILABILITY_TOPIC == True:
@@ -448,6 +505,8 @@ try:
         'name': Config.get('Home Assistant', 'Node_Name') + " Temperature",
         'stat_t': "/".join([TopicHatTemp, 'state']),
         'unit_of_meas': '°C',
+        'uniq_id': UniqueId+'03',
+        'dev': HA_device,
     }
     # add availability topic if configured
     if ENABLE_AVAILABILITY_TOPIC == True:
@@ -466,6 +525,8 @@ try:
         'dev_cla': 'heat',
         'pl_on': 'ON',
         'pl_off': 'OFF',
+        'uniq_id': UniqueId+'04',
+        'dev': HA_device,
     }
     # add availability topic if configured
     if ENABLE_AVAILABILITY_TOPIC == True:
